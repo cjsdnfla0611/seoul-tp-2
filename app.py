@@ -18,7 +18,6 @@ def load_data():
 
 df_raw = load_data()
 
-# 데이터 정제 (결측 및 300일 미만 연도 제외)
 df_filtered = df_raw[df_raw["연도"] <= 2025].copy()
 yearly_counts = df_filtered.groupby("연도")["평균기온"].count()
 valid_years = yearly_counts[yearly_counts >= 300].index
@@ -26,23 +25,19 @@ valid_years = yearly_counts[yearly_counts >= 300].index
 df_valid = df_filtered[df_filtered["연도"].isin(valid_years)]
 df_yearly = df_valid.groupby("연도")["평균기온"].mean().reset_index()
 
-# 수치적 안정을 위해 연도 스케일링 (1908년 = 0)
 BASE_YEAR = 1908
 df_yearly["X"] = df_yearly["연도"] - BASE_YEAR
 
-# 2005년 이전: 훈련용 / 2005년 이후(2005~2025): 테스트용
 df_train = df_yearly[df_yearly["연도"] < 2005].copy()
 df_test = df_yearly[df_yearly["연도"] >= 2005].copy()
 
-# 데이터 개수 표기
 st.subheader("📌 데이터셋 구성 정보")
 col_train, col_test = st.columns(2)
-col_train.metric("훈련용 데이터 (2005년 이전)", f"{df_train['연도'].min()}년 ~ {df_train['연도'].max()}년", f"{len(df_train)}개 연도")
-col_test.metric("테스트용 데이터 (2005년 이후)", f"{df_test['연도'].min()}년 ~ {df_test['연도'].max()}년", f"{len(df_test)}개 연도")
+col_train.metric("훈련용 데이터 (<2005년)", f"{df_train['연도'].min()}년 ~ {df_train['연도'].max()}년", f"{len(df_train)}개 연도")
+col_test.metric("테스트용 데이터 (≥2005년)", f"{df_test['연도'].min()}년 ~ {df_test['연도'].max()}년", f"{len(df_test)}개 연도")
 
 st.divider()
 
-# 다항 회귀 평가 함수
 degrees = [1, 3, 9]
 results = []
 models = {}
@@ -55,19 +50,8 @@ y_test = df_test["평균기온"].values
 X_2050 = np.array([2050 - BASE_YEAR])
 
 for deg in degrees:
-    # 훈련용 데이터로만 다항식 적합 (polyfit)
     coeffs = np.polyfit(X_train, y_train, deg)
     poly_func = np.poly1d(coeffs)
     models[deg] = poly_func
     
-    # 순수 테스트용 데이터로 예측 및 채점
-    y_pred_test = poly_func(X_test)
-    mae = mean_absolute_error(y_test, y_pred_test)
-    mse = mean_squared_error(y_test, y_pred_test)
-    r2 = r2_score(y_test, y_pred_test)
-    
-    # 2050년 예측값
-    pred_2050 = poly_func(X_2050)[0]
-    
-    results.append({
-        "차
+    y_pred_test
