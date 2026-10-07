@@ -37,15 +37,12 @@ df_train_50 = df_yearly[(df_yearly["연도"] >= 1956) & (df_yearly["연도"] <= 
 
 def fit_and_evaluate(df_train, df_test, label):
     slope, intercept = np.polyfit(df_train["X"].values, df_train["평균기온"].values, 1)
-
     y_true = df_test["평균기온"].values
     y_pred = slope * df_test["X"].values + intercept
-
     mae = mean_absolute_error(y_true, y_pred)
     mse = mean_squared_error(y_true, y_pred)
     r2 = r2_score(y_true, y_pred)
     rate_100y = slope * 100
-
     return {
         "label": label,
         "slope": slope,
@@ -67,7 +64,4 @@ res_100 = fit_and_evaluate(df_train_100, df_test, "100년 학습 (1906~2005)")
 res_50 = fit_and_evaluate(df_train_50, df_test, "50년 학습 (1956~2005)")
 
 st.subheader("데이터셋 구성")
-col_info1, col_info2, col_info3 = st.columns(3)
-col_info1.metric("공통 테스트 데이터", "2006년 ~ 2025년", f"{len(df_test)}개 해")
-col_info2.metric("학습 모델 A (100년 데이터)", "1906년 ~ 2005년", f"{res_100['train_count']}개 해")
-col_info3.metric("학습 모델 B (50년 데이터)", "1956년 ~ 2005년",
+col_info1, col_info2, col_info3 = st.columns(3
